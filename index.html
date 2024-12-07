@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLEF Adjudication</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="mean-grid">
+    <div id="filters">
+      <div class="styledContainer">
+        <div id="greater-than">
+          <label for="minValue">Mean greater than:</label>
+          <input type="number" id="minValue" placeholder="Show means greater than...">
+        </div>
+      </div>
+      <div class="styledContainer">
+        <div id="less-than">
+          <label for="maxValue">Means less than:</label>
+          <input type="number" id="maxValue" placeholder="Show means less than...">
+        </div>
+      </div>
+
+        <div class="styledContainer">
+          <label for="requestedFunds">Selected Applicants</label>
+          <input type="text" id="requestedFunds" placeholder="Funding for...">
+        </div>
+        <div class="styledContainer">
+          <h2>Requested Funding</h2>
+          <p id="displayRequested"></p>
+        </div>
+        <div class="styledContainer">
+          <h2>Colleges Represented</h2>
+          <div id="displayColleges"></div>
+        </div>
+        <div class="styledContainer">
+          <h2>Faculty Represented</h2>
+          <div id="displayFaculty"></div>
+        </div>
+
+    </div>
+    <div class="styledContainer chartStyledContainer">
+      <div id="chart-container">
+        <h4>Applicant's Average Score (out of 3)</h4>
+        <p id="currentPages" >Showing 0 of 0 applicants</p>
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+    <div class="styledContainer chartStyledContainer">
+      <h2>Titles Displayed in Left Figure</h2>
+      <div id="nameList"></div>
+    </div>
+    <!-- New Div for comparison inputs -->
+    <div id="compare-pages">
+      <div class="styledContainer">
+        <label for="pageOne">First Applicant:</label>
+        <input type="number" id="pageOne" min="3" />
+      </div>
+      <div class="styledContainer">
+        <label for="pageTwo">Second Applicant:</label>
+        <input type="number" id="pageTwo" min="3" />
+      </div>
+        
+        <button id="compareButton">Compare</button>
+    </div>
+    
+    <!-- New Div for the comparison chart -->
+    <div class="styledContainer chartStyledContainer comparisonContainer">
+      <div id="comparison-chart-container">
+          <h2>Comparisons</h2>
+          <canvas id="comparisonChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+
+</body>
+</html>

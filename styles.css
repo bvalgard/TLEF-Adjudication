@@ -1,0 +1,171 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 32px;
+    background-color: whitesmoke;
+}
+
+.mean-grid {
+  display: grid;
+  grid-template-columns: 1fr 4fr 2fr;
+  /* gap: 1rem; */
+}
+
+.top-left-container {
+  display: grid;
+  gap: 1rem;
+}
+
+#filters {
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  align-items: flex-start; /* Align children to the left */
+  flex: 0 0 auto; /* Take only necessary space */
+  /* margin-bottom: 2rem; */
+  gap: 2rem;
+}
+
+#filters label {
+    margin-right: 10px;
+    font-size: 1.5rem;
+}
+
+#chart-container {
+  width: 800px;
+  height: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  font-size: 1.5rem;
+}
+
+#chart-container > * {
+  margin-bottom: 2rem; /* Add spacing between children */
+}
+
+#myChart {
+  flex: 0 0 80%;
+}
+
+#nameList {
+  width: 100%;
+  font-size: 1.4rem;
+  max-height: 1000px;
+  overflow-y: scroll;
+}
+
+
+#filters input {
+  display: block;
+  width: 100%;
+  font-size: 1.5rem;
+  height: auto; /* Let the height adjust naturally */
+  max-width: 300px; /* Adjust for better spacing */
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+#filters label {
+  color: #333; /* Modern, subtle text color */
+  font-weight: 600; /* Slightly bold for better readability */
+  margin-bottom: 0.5rem;
+}
+
+#filters input {
+  appearance: none;
+  padding: 0.8rem 1rem; /* Spacious padding for a clean look */
+  border: 1px solid #ddd; /* Flat, neutral border */
+  border-radius: 8px; /* Subtle rounded corners */
+  background-color: #f9f9f9; /* Light gray background for contrast */
+  color: #333; /* Text color */
+  font-size: 1.2rem; /* Slightly smaller font for inputs */
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Input focus and hover effects */
+#filters input:focus {
+  border-color: #00a3e0; /* Highlight border color on focus */
+  background-color: #fff; /* Bright background for focus */
+  outline: none; /* Remove default focus outline */
+}
+
+#filters input:hover {
+  border-color: #bbb; /* Subtle border change on hover */
+}
+
+/* Remove the arrows for number inputs */
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+  -webkit-appearance: none; /* Safari and Chrome */
+  appearance: none; /* Standard */
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+#compare-pages {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  gap: 1rem;
+}
+
+#compare-pages label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+#compare-pages input {
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+#compare-pages button {
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+  background-color: #00a3e0;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#comparison-chart-container {
+  margin-top: 2rem;
+  width: 800px;
+  height: 500px;
+  margin: auto;
+}
+
+#currentPages {
+  margin-top: -32px;
+  margin-bottom: 0px;
+  font-size: 1.5rem;
+}
+
+.styledContainer {
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 1rem;
+}
+
+.styledContainer.chartStyledContainer {
+  height: 1100px;
+  margin: 32px;
+  padding: 0 62px;
+  margin-top: 0px;
+  /* background-color: black; */
+}
+
+.styledContainer.chartStyledContainer.comparisonContainer {
+  height: 600px;
+}
