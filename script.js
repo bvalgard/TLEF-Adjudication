@@ -427,8 +427,8 @@ const metaData = [
         faculty: 'Faculty of Rehabilitation Medicine',
         college: 'College of Health Sciences',
         level: 'g',
-        requested: 6_274.84,
-        eligible: 6_274.84
+        requested: 6_275,
+        eligible: 6_275
     },
     {
         page: 13,
@@ -500,7 +500,7 @@ const metaData = [
         college: 'College of Health Sciences',
         level: 'u',
         requested: 25_000,
-        eligible: 23_532.74
+        eligible: 23_533
     },
     {
         page: 22,
@@ -563,8 +563,8 @@ const metaData = [
         faculty: 'Faculty of Agricultural, Life & Environmental Science',
         college: 'College of Natural & Applied Sciences',
         level: 'u',
-        requested: 16_576.42,
-        eligible: 16_576.42
+        requested: 16_577,
+        eligible: 16_577
     },
     {
         page: 30,
