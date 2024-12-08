@@ -10,6 +10,7 @@ const collegesOutput = document.getElementById('displayColleges');
 const facultiesOutput = document.getElementById('displayFaculty');
 const compareOne = document.getElementById('pageOne');
 const compareTwo = document.getElementById('pageTwo');
+const compareThree = document.getElementById('pageThree');
 const compareButton = document.getElementById('compareButton');
 
 // Event listener for the Compare button
@@ -263,28 +264,20 @@ function renderChart(labels, data, tooltips) {
 function renderComparisonChart(data) {
     const chartOneNum = parseInt(compareOne.value);
     const chartTwoNum = parseInt(compareTwo.value);
+    const chartThreeNum = parseInt(compareThree?.value); // Optional third input (add this to your HTML if needed)
 
-    // Filter data for the two selected pages
+    // Filter data for the selected pages
     const chartOneObjects = data.filter(obj => obj.pageNum === chartOneNum);
     const chartTwoObjects = data.filter(obj => obj.pageNum === chartTwoNum);
+    const chartThreeObjects = chartThreeNum
+        ? data.filter(obj => obj.pageNum === chartThreeNum)
+        : [];
 
-    const chartOneData = [
-        chartOneObjects[0].mean,
-        chartOneObjects[4].mean,
-        chartOneObjects[5].mean,
-        chartOneObjects[2].mean,
-        chartOneObjects[1].mean,
-        chartOneObjects[3].mean,
-    ];
-
-    const chartTwoData = [
-        chartTwoObjects[0].mean,
-        chartTwoObjects[4].mean,
-        chartTwoObjects[5].mean,
-        chartTwoObjects[2].mean,
-        chartTwoObjects[1].mean,
-        chartTwoObjects[3].mean,
-    ];
+    const chartOneData = chartOneObjects.map(obj => obj.mean);
+    const chartTwoData = chartTwoObjects.map(obj => obj.mean);
+    const chartThreeData = chartThreeObjects.length > 0
+        ? chartThreeObjects.map(obj => obj.mean)
+        : null;
 
     const labels = [
         'Project Goals',
@@ -302,31 +295,45 @@ function renderComparisonChart(data) {
         comparisonChart.destroy();
     }
 
+    // Prepare datasets dynamically
+    const datasets = [
+        {
+            label: `Data for Page ${chartOneNum}`,
+            data: chartOneData,
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+        },
+        {
+            label: `Data for Page ${chartTwoNum}`,
+            data: chartTwoData,
+            backgroundColor: "rgba(192, 75, 192, 0.6)",
+            borderColor: "rgba(192, 75, 192, 1)",
+            borderWidth: 1,
+        },
+    ];
+
+    // Add third dataset if it exists
+    if (chartThreeData) {
+        datasets.push({
+            label: `Data for Page ${chartThreeNum}`,
+            data: chartThreeData,
+            backgroundColor: "rgba(75, 75, 192, 0.6)",
+            borderColor: "rgba(75, 75, 192, 1)",
+            borderWidth: 1,
+        });
+    }
+
+    // Render the chart
     comparisonChart = new Chart(ctx, {
         type: "bar",
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: `Data for Page ${chartOneNum}`,
-                    data: chartOneData,
-                    backgroundColor: "rgba(75, 192, 192, 0.6)",
-                    borderColor: "rgba(75, 192, 192, 1)",
-                    borderWidth: 1,
-                },
-                {
-                    label: `Data for Page ${chartTwoNum}`,
-                    data: chartTwoData,
-                    backgroundColor: "rgba(192, 75, 192, 0.6)",
-                    borderColor: "rgba(192, 75, 192, 1)",
-                    borderWidth: 1,
-                },
-            ],
+            datasets: datasets,
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            // indexAxis: "y",
             plugins: {
                 tooltip: {
                     titleFont: { size: 18 },
@@ -336,17 +343,16 @@ function renderComparisonChart(data) {
             scales: {
                 x: {
                     beginAtZero: true,
-                    ticks: { font: { size: 20 } }
+                    ticks: { font: { size: 20 } },
                 },
                 y: {
-                    grid: { display: false },
-                    ticks: { font: { size: 20 } }
-                }
+                    beginAtZero: true,
+                    ticks: { font: { size: 20 } },
+                },
             },
         },
     });
 }
-
 // Load the initial CSV data
 loadCSVData();
 
