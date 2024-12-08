@@ -4,6 +4,7 @@ const maxValueInput = document.getElementById('maxValue');
 const currentPages = document.getElementById('currentPages');
 const nameListDiv = document.getElementById('nameList');
 const requestedFundingInput = document.getElementById('requestedFunds');
+const selectedApplicantsLabel = document.getElementById('requestedFunds-label');
 const requestedOutput = document.getElementById('displayRequested');
 const collegesOutput = document.getElementById('displayColleges');
 const facultiesOutput = document.getElementById('displayFaculty');
@@ -31,8 +32,8 @@ minValueInput.addEventListener('input', applyFilters);
 maxValueInput.addEventListener('input', applyFilters);
 requestedFundingInput.addEventListener('input', () => {
     const requestedApplicants = requestedFundingInput.value.split(",").map(Number);
+    const requestedApplicantsLen = requestedApplicants.length
     const selectedApplicantsData = metaData.filter(item => requestedApplicants.includes(item.page));
-
     const { totalRequested, facultyCount, collegeCount } = fundingFacultyCollege(selectedApplicantsData); 
 
     requestedOutput.textContent = `$${numberWithCommas(totalRequested)}`;
@@ -58,9 +59,10 @@ requestedFundingInput.addEventListener('input', () => {
         p.textContent = `${facKeys[i]}: ${facLabels[i]}`;
         facultiesOutput.appendChild(p);
     }
+
+    selectedApplicantsLabel.textContent = `${requestedApplicantsLen} Selected Applicants`
     
-    console.log('Total Requested:', totalRequested);
-    console.log('Faculty Count:', facultyCount);
+
 });
 
 const fundingFacultyCollege = (filteredData) => {
@@ -324,7 +326,7 @@ function renderComparisonChart(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: "y",
+            // indexAxis: "y",
             plugins: {
                 tooltip: {
                     titleFont: { size: 18 },

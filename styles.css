@@ -4,11 +4,37 @@ body {
     background-color: whitesmoke;
 }
 
-.mean-grid {
+.grid {
   display: grid;
-  grid-template-columns: 1fr 4fr 2fr;
-  /* gap: 1rem; */
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: min-content 1fr min-content;
+  grid-template-areas:
+    "meta-data meta-data meta-data meta-data meta-data meta-data meta-data"
+    "filters avg-score avg-score avg-score avg-names-list avg-names-list avg-names-list"
+    "comp-filters comp-chart comp-chart comp-chart comp-chart comp-chart comp-chart";
 }
+
+.meta-data {
+  grid-area: meta-data;
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.b1 {
+  grid-area: avg-score;
+}
+
+.avg-score {
+  grid-area: avg-score;
+}
+
+.avg-names-list {
+  grid-area: avg-names-list;
+}
+
+
 
 .top-left-container {
   display: grid;
@@ -65,7 +91,6 @@ body {
   overflow-y: scroll;
 }
 
-
 #filters input {
   display: block;
   width: 100%;
@@ -117,6 +142,16 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
+#requestedFunds {
+  display:block;
+  font-size: 1.5rem;
+  width: 700px;
+  margin-top: 1rem;
+}
+
+#requestedFunds-label {
+  font-size: 1.5rem;
+}
 
 #compare-pages {
   margin-top: 2rem;
@@ -179,4 +214,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .styledContainer.chartStyledContainer.comparisonContainer {
   height: 600px;
+}
+
+.styledContainer.max-height {
+  height: 120px;
 }

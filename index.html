@@ -10,7 +10,26 @@
     <script defer src="script.js"></script>
 </head>
 <body>
-  <div class="mean-grid">
+  <div class="grid">
+    <div class="meta-data">
+      <div class="styledContainer max-height">
+        <label id="requestedFunds-label" for="requestedFunds"># Selected Applicants</label>
+        <input type="text" id="requestedFunds" placeholder="Funding for...">
+      </div>
+      <div class="styledContainer max-height">
+        <h2>Requested Funding</h2>
+        <p id="displayRequested"></p>
+      </div>
+      <div class="styledContainer">
+        <h2>Colleges Represented</h2>
+        <div id="displayColleges"></div>
+      </div>
+      <div class="styledContainer">
+        <h2>Faculty Represented</h2>
+        <div id="displayFaculty"></div>
+      </div>
+    </div>
+
     <div id="filters">
       <div class="styledContainer">
         <div id="greater-than">
@@ -24,36 +43,25 @@
           <input type="number" id="maxValue" placeholder="Show means less than...">
         </div>
       </div>
-
-        <div class="styledContainer">
-          <label for="requestedFunds">Selected Applicants</label>
-          <input type="text" id="requestedFunds" placeholder="Funding for...">
-        </div>
-        <div class="styledContainer">
-          <h2>Requested Funding</h2>
-          <p id="displayRequested"></p>
-        </div>
-        <div class="styledContainer">
-          <h2>Colleges Represented</h2>
-          <div id="displayColleges"></div>
-        </div>
-        <div class="styledContainer">
-          <h2>Faculty Represented</h2>
-          <div id="displayFaculty"></div>
-        </div>
-
     </div>
-    <div class="styledContainer chartStyledContainer">
-      <div id="chart-container">
-        <h4>Applicant's Average Score (out of 3)</h4>
-        <p id="currentPages" >Showing 0 of 0 applicants</p>
-        <canvas id="myChart"></canvas>
+
+    <div class="avg-score">
+      <div class="styledContainer chartStyledContainer">
+        <div id="chart-container">
+          <h4>Applicant's Average Score (out of 3)</h4>
+          <p id="currentPages" >Showing 0 of 0 applicants</p>
+          <canvas id="myChart"></canvas>
+        </div>
       </div>
     </div>
-    <div class="styledContainer chartStyledContainer">
-      <h2>Titles Displayed in Left Figure</h2>
-      <div id="nameList"></div>
+
+    <div class="avg-names-list">
+      <div class="styledContainer chartStyledContainer">
+        <h2>Titles Displayed in Left Figure</h2>
+        <div id="nameList"></div>
+      </div>
     </div>
+
     <!-- New Div for comparison inputs -->
     <div id="compare-pages">
       <div class="styledContainer">
