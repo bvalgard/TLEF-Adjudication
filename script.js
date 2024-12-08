@@ -203,6 +203,11 @@ function processChartData(data) {
 
 // Render the main chart
 function renderChart(labels, data, tooltips) {
+    const canvas = document.getElementById("myChart");
+    // Set max-height dynamically
+    const maxHeight = 1100; // Example height in pixels
+    canvas.style.maxHeight = `${maxHeight}px`;
+
     const ctx = document.getElementById("myChart").getContext("2d");
 
     // Destroy the previous chart instance if it exists
@@ -262,6 +267,11 @@ function renderChart(labels, data, tooltips) {
 
 // Render the comparison chart
 function renderComparisonChart(data) {
+    // Set max-height dynamically
+    const canvas = document.getElementById("comparisonChart");
+    const maxHeight = 400; // Example height in pixels
+    canvas.style.maxHeight = `${maxHeight}px`;
+    
     const chartOneNum = parseInt(compareOne.value);
     const chartTwoNum = parseInt(compareTwo.value);
     const chartThreeNum = parseInt(compareThree?.value); // Optional third input (add this to your HTML if needed)
