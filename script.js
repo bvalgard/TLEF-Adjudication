@@ -1,6 +1,6 @@
 // Input and display elements
-const minValueInput = document.getElementById('minValue');
-const maxValueInput = document.getElementById('maxValue');
+const greaterThanValueInput = document.getElementById('minValue');
+const lessThanValueInput = document.getElementById('maxValue');
 const currentPages = document.getElementById('currentPages');
 const nameListDiv = document.getElementById('nameList');
 const requestedFundingInput = document.getElementById('requestedFunds');
@@ -22,15 +22,65 @@ function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-
 let originalData = []; // Full dataset with all fields
 let myChart; // Main chart instance
 let comparisonChart; // Comparison chart instance
 
+// Custom plugin for error bars (whiskers)
+const errorBarPlugin = {
+    id: 'errorBars',
+    afterDatasetsDraw(chart) {
+        const { ctx, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+
+        const dataset = chart.data.datasets[0];
+        const labels = chart.data.labels;
+
+        if (!window.pageInfo) return;
+
+        ctx.save();
+        ctx.strokeStyle = '#8E918F';
+        ctx.lineWidth = 2;
+
+        labels.forEach((page, index) => {
+            const info = window.pageInfo[page]; // Ensure this matches the sorted labels
+            if (!info) return;
+            const meanValue = dataset.data[index];
+            const minVal = info.min;
+            const maxVal = info.max;
+
+            const yPos = yScale.getPixelForValue(page); // Corrected alignment
+            const meanX = xScale.getPixelForValue(meanValue);
+            const minX = xScale.getPixelForValue(minVal);
+            const maxX = xScale.getPixelForValue(maxVal);
+
+            // Draw line from minX to maxX
+            ctx.beginPath();
+            ctx.moveTo(minX, yPos);
+            ctx.lineTo(maxX, yPos);
+            ctx.stroke();
+
+            // Draw caps
+            const capSize = 5;
+            ctx.beginPath();
+            ctx.moveTo(minX, yPos - capSize);
+            ctx.lineTo(minX, yPos + capSize);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(maxX, yPos - capSize);
+            ctx.lineTo(maxX, yPos + capSize);
+            ctx.stroke();
+        });
+
+        ctx.restore();
+    },
+};
+
 // Event listeners for min/max value inputs & requested funding
-// Event listeners for min/max value inputs & requested funding
-minValueInput.addEventListener('input', applyFilters);
-maxValueInput.addEventListener('input', applyFilters);
+greaterThanValueInput.addEventListener('input', applyFilters);
+lessThanValueInput.addEventListener('input', applyFilters);
 requestedFundingInput.addEventListener('input', () => {
     const requestedApplicants = requestedFundingInput.value.split(",").map(Number);
     const requestedApplicantsLen = requestedApplicants.length
@@ -104,8 +154,17 @@ function sortChartDescending(chart) {
 
     combinedData.sort((a, b) => b.value - a.value);
 
+    // Update the chart data
     chart.data.labels = combinedData.map(item => item.label);
     chart.data.datasets[0].data = combinedData.map(item => item.value);
+
+    // Update pageInfo to match the sorted order
+    const sortedPageInfo = {};
+    combinedData.forEach(item => {
+        const page = item.label;
+        sortedPageInfo[page] = window.pageInfo[page]; // Retain min/max/mean for each page
+    });
+    window.pageInfo = sortedPageInfo;
 
     chart.update();
 }
@@ -114,8 +173,8 @@ function sortChartDescending(chart) {
 function applyFilters() {
     if (!myChart || originalData.length === 0) return;
 
-    const minValue = parseFloat(minValueInput.value) || 0;
-    const maxValue = parseFloat(maxValueInput.value) || 3;
+    const minValue = parseFloat(greaterThanValueInput.value) || 0;
+    const maxValue = parseFloat(lessThanValueInput.value) || 3;
 
     // Filter data while keeping all fields accessible
     const meanOnlyData = originalData.filter(obj => obj.category === 'Mean');
@@ -161,10 +220,15 @@ function loadCSVData() {
     });
 }
 
+// We'll create a global pageInfo object to store min/max for each page:
+window.pageInfo = {}; // Will store { page: {min:..., max:..., mean:...}, ... }
+
 // Process CSV data and render charts
 function processChartData(data) {
     const pageMeans = {};
     const pageNames = {};
+    const pageMins = {};
+    const pageMaxs = {};
 
     originalData = []; // Reset the original data
 
@@ -172,9 +236,13 @@ function processChartData(data) {
         const page = row.page;
         const name = row.name;
         const mean = parseFloat(row.mean);
+        const min = parseFloat(row.min);
+        const max = parseFloat(row.max)
 
         pageNames[page] = name;
         pageMeans[page] = mean;
+        pageMins[page] = min;
+        pageMaxs[page] = max;
 
         // Store the full row in originalData
         originalData.push({
@@ -182,8 +250,19 @@ function processChartData(data) {
             name: name,
             category: row.category,
             mean: mean,
+            min: min,
+            max: max,
             pageNum: parseInt(row.page_num)
         });
+    });
+
+    // Populate global pageInfo for error bars
+    Object.keys(pageMeans).forEach(page => {
+        window.pageInfo[page] = {
+            mean: pageMeans[page],
+            min: pageMins[page],
+            max: pageMaxs[page] 
+        };
     });
 
     // Prepare labels, values, and tooltips for the main chart
@@ -204,8 +283,7 @@ function processChartData(data) {
 // Render the main chart
 function renderChart(labels, data, tooltips) {
     const canvas = document.getElementById("myChart");
-    // Set max-height dynamically
-    const maxHeight = 1100; // Example height in pixels
+    const maxHeight = 1100; 
     canvas.style.maxHeight = `${maxHeight}px`;
 
     const ctx = document.getElementById("myChart").getContext("2d");
@@ -251,6 +329,8 @@ function renderChart(labels, data, tooltips) {
             scales: {
                 x: {
                     beginAtZero: true,
+                    min: 0,
+                    max: 3,
                     ticks: { font: { size: 20 } }
                 },
                 y: {
@@ -259,6 +339,7 @@ function renderChart(labels, data, tooltips) {
                 }
             },
         },
+        plugins: [errorBarPlugin]
     });
 
     // Sort the chart in descending order after rendering
