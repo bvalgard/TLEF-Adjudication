@@ -243,7 +243,7 @@ function renderChart(labels, data, tooltips) {
                     callbacks: {
                         label: function (context) {
                             const index = context.dataIndex;
-                            return `Mean: ${context.raw} (${tooltips[index]})`;
+                            return `Mean: ${context.raw}`; // I had the title, but it made the tooltip too long and it was not sorted correctly.
                         },
                     },
                 },
@@ -274,7 +274,7 @@ function renderComparisonChart(data) {
     
     const chartOneNum = parseInt(compareOne.value);
     const chartTwoNum = parseInt(compareTwo.value);
-    const chartThreeNum = parseInt(compareThree?.value); // Optional third input (add this to your HTML if needed)
+    const chartThreeNum = parseInt(compareThree?.value);
 
     // Filter data for the selected pages
     const chartOneObjects = data.filter(obj => obj.pageNum === chartOneNum);
