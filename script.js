@@ -5,6 +5,8 @@
 // Input and display elements
 const greaterThanValueInput = document.getElementById('minValue');
 const lessThanValueInput = document.getElementById('maxValue');
+const horizontalLine = document.getElementById('horizontalLine');
+
 const xMaxInput = document.getElementById('xMaxInput');
 const currentPages = document.getElementById('currentPages');
 const nameListDiv = document.getElementById('nameList');
@@ -32,6 +34,7 @@ function numberWithCommas(x) {
 // Don't love this. if I put 2.5 it rerenders for 2 . and 5. I should change this to a slider
 // or a button to rerender
 xMaxInput.addEventListener('input', () => loadCSVData());
+horizontalLine.addEventListener('input', () => loadCSVData());
 
 let originalData = []; // Full dataset with all fields
 let myChart; // Main chart instance
@@ -231,6 +234,35 @@ const unifiedErrorBarPlugin = {
       ctx.restore();
     }
   };
+
+
+  const horizontalLinePlugin = {
+    id: 'horizontalLine',
+    beforeDraw(chart, args, options) {
+        const { ctx, chartArea, scales } = chart;
+
+        if (!options || options.yValue === undefined) {
+            return; // Exit if no yValue provided in options
+        }
+
+        const yScale = scales.y;
+        const yPos = yScale.getPixelForValue(options.yValue); // Convert yValue to pixel position
+
+        if (yPos < chartArea.top || yPos > chartArea.bottom) {
+            console.warn(`yValue ${options.yValue} is outside of the visible chart area.`);
+            return; // Exit if the value is outside the chart area
+        }
+
+        ctx.save();
+        ctx.strokeStyle = options.color || 'red'; // Line color (default: red)
+        ctx.lineWidth = options.lineWidth || 2; // Line width (default: 2)
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, yPos); // Start from the left of the chart area
+        ctx.lineTo(chartArea.right, yPos); // Draw to the right of the chart area
+        ctx.stroke();
+        ctx.restore();
+    }
+};
   
 // Event listeners for min/max value inputs & requested funding
 greaterThanValueInput.addEventListener('input', applyFilters);
@@ -434,6 +466,9 @@ function processChartData(data) {
     renderComparisonChart(originalData);
 }
 
+// todo: organize 
+
+
 // Render the main chart
 function renderChart(labels, data, tooltips) {
     const canvas = document.getElementById("myChart");
@@ -453,51 +488,55 @@ function renderChart(labels, data, tooltips) {
     myChart = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: "Mean by Page",
-                    data: data,
-                    backgroundColor: "rgba(75, 192, 192, 0.6)",
-                    borderColor: "rgba(75, 192, 192, 1)",
-                    borderWidth: 1,
-                },
-            ],
+          labels: labels,
+          datasets: [
+            {
+              label: "Mean by Page",
+              data: data,
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: "y",
-            plugins: {
-                legend: {
-                    display: false,
-                },
-                tooltip: {
-                    titleFont: { size: 18 },
-                    bodyFont: { size: 18 },
-                    callbacks: {
-                        label: function (context) {
-                            const index = context.dataIndex;
-                            return `Mean: ${context.raw}`;
-                        },
-                    },
-                },
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: "y",
+          plugins: {
+            legend: {
+              display: false,
             },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    min: 0,
-                    max: xMax, // Use dynamic xMax
-                    ticks: { font: { size: 20 } }
+            tooltip: {
+              titleFont: { size: 18 },
+              bodyFont: { size: 18 },
+              callbacks: {
+                label: function (context) {
+                  return `Mean: ${context.raw}`;
                 },
-                y: {
-                    grid: { display: false },
-                    ticks: { font: { size: 22 } }
-                }
+              },
             },
+            horizontalLine: {
+              yValue: `Page ${horizontalLine.value}`,     // or a label that exists in your data
+              color: "red",
+              lineWidth: 3,
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              min: 0,
+              max: xMax, 
+              ticks: { font: { size: 20 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { size: 22 } }
+            }
+          }
         },
-        plugins: [horizontalErrorBarPlugin]
-    });
+        plugins: [horizontalErrorBarPlugin, horizontalLinePlugin]
+      });
 
     // Sort the chart in descending order after rendering
     sortChartDescending(myChart);
