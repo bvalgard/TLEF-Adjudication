@@ -1,6 +1,11 @@
+// todo: 
+// make sliders instead of inputs
+// When click a bar add it to the selected applicants list if select again, remove from applicants list
+
 // Input and display elements
-const minValueInput = document.getElementById('minValue');
-const maxValueInput = document.getElementById('maxValue');
+const greaterThanValueInput = document.getElementById('minValue');
+const lessThanValueInput = document.getElementById('maxValue');
+const xMaxInput = document.getElementById('xMaxInput');
 const currentPages = document.getElementById('currentPages');
 const nameListDiv = document.getElementById('nameList');
 const requestedFundingInput = document.getElementById('requestedFunds');
@@ -13,6 +18,9 @@ const compareTwo = document.getElementById('pageTwo');
 const compareThree = document.getElementById('pageThree');
 const compareButton = document.getElementById('compareButton');
 
+// defaults
+const defaultXMax = 3;
+
 // Event listener for the Compare button
 compareButton.addEventListener('click', () => {
     loadCSVData();
@@ -21,16 +29,212 @@ compareButton.addEventListener('click', () => {
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-
+// Don't love this. if I put 2.5 it rerenders for 2 . and 5. I should change this to a slider
+// or a button to rerender
+xMaxInput.addEventListener('input', () => loadCSVData());
 
 let originalData = []; // Full dataset with all fields
 let myChart; // Main chart instance
 let comparisonChart; // Comparison chart instance
 
+// Custom plugin for error bars (whiskers)
+const horizontalErrorBarPlugin = {
+    id: 'errorBars',
+    afterDatasetsDraw(chart) {
+        const { ctx, scales } = chart;
+        const xScale = scales.x;
+        const yScale = scales.y;
+
+        const dataset = chart.data.datasets[0];
+        const labels = chart.data.labels;
+
+        if (!window.pageInfo) return;
+
+        ctx.save();
+        ctx.strokeStyle = '#8E918F';
+        ctx.lineWidth = 2;
+
+        labels.forEach((page, index) => {
+            const info = window.pageInfo[page]; // Ensure this matches the sorted labels
+            if (!info) return;
+            const meanValue = dataset.data[index];
+            const minVal = info.min;
+            const maxVal = info.max;
+
+            const yPos = yScale.getPixelForValue(page); // Corrected alignment
+            const meanX = xScale.getPixelForValue(meanValue);
+            const minX = xScale.getPixelForValue(minVal);
+            const maxX = xScale.getPixelForValue(maxVal);
+
+            // Draw line from minX to maxX
+            ctx.beginPath();
+            ctx.moveTo(minX, yPos);
+            ctx.lineTo(maxX, yPos);
+            ctx.stroke();
+
+            // Draw caps
+            const capSize = 5;
+            ctx.beginPath();
+            ctx.moveTo(minX, yPos - capSize);
+            ctx.lineTo(minX, yPos + capSize);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(maxX, yPos - capSize);
+            ctx.lineTo(maxX, yPos + capSize);
+            ctx.stroke();
+        });
+
+        ctx.restore();
+    },
+};
+
+// todo: refactor pass in what type of bar chart instead of duplicating all this code!
+const ErrorBarPlugin = {
+    id: 'errorBars',
+    afterDatasetsDraw(chart) {
+        const { ctx, scales } = chart;
+        const xScale = scales.x; // X-axis for bar positions
+        const yScale = scales.y; // Y-axis for data values
+
+        const dataset = chart.data.datasets[0];
+        const labels = chart.data.labels;
+
+        if (!window.pageInfo) return;
+
+        ctx.save();
+        ctx.strokeStyle = '#8E918F'; // Error bar color
+        ctx.lineWidth = 2; // Error bar line width
+
+        labels.forEach((label, index) => {
+            const info = window.pageInfo[label]; // Get min/max/mean for the label
+            if (!info) return;
+            const meanValue = dataset.data[index];
+            const minVal = info.min;
+            const maxVal = info.max;
+
+            const xPos = xScale.getPixelForValue(label); // Bar's x-position
+            const meanY = yScale.getPixelForValue(meanValue); // Mean y-position
+            const minY = yScale.getPixelForValue(minVal); // Min y-position
+            const maxY = yScale.getPixelForValue(maxVal); // Max y-position
+
+            // Draw vertical line from minY to maxY
+            ctx.beginPath();
+            ctx.moveTo(xPos, minY);
+            ctx.lineTo(xPos, maxY);
+            ctx.stroke();
+
+            // Draw caps at min and max
+            const capSize = 5; // Width of the cap
+            ctx.beginPath();
+            ctx.moveTo(xPos - capSize, minY);
+            ctx.lineTo(xPos + capSize, minY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(xPos - capSize, maxY);
+            ctx.lineTo(xPos + capSize, maxY);
+            ctx.stroke();
+        });
+
+        ctx.restore();
+    },
+};
+
+
+// todo: this should work for both horizontal and vertical bar charts no need for above
+const unifiedErrorBarPlugin = {
+    id: 'unifiedErrorBarPlugin',
+    afterDatasetsDraw(chart, args, options) {
+      const { ctx, chartArea, scales } = chart;
+      const xScale = scales.x;
+      const yScale = scales.y;
+      const isHorizontal = chart.config.options.indexAxis === 'y';
+  
+      // We’ll assume each dataset has a parallel array of originalData objects
+      // that contain mean, min, max. For vertical charts, we draw vertical error bars;
+      // for horizontal charts, we draw horizontal error bars.
+  
+      ctx.save();
+      ctx.strokeStyle = options?.strokeStyle || '#8E918F';
+      ctx.lineWidth = options?.lineWidth || 2;
+  
+      chart.data.datasets.forEach((dataset, datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+  
+        // Ensure the dataset has originalData with min/max for each point
+        if (!dataset.originalData) return;
+  
+        meta.data.forEach((barElement, i) => {
+          if (!barElement) return;
+  
+          const dataPoint = dataset.originalData[i];
+          if (!dataPoint || dataPoint.min === undefined || dataPoint.max === undefined) return;
+  
+          const meanVal = dataPoint.mean;
+          const minVal = dataPoint.min;
+          const maxVal = dataPoint.max;
+  
+          if (isHorizontal) {
+            // Horizontal error bars
+            const yPos = barElement.y; // Bar center in y-direction
+            const meanX = xScale.getPixelForValue(meanVal);
+            const minX = xScale.getPixelForValue(minVal);
+            const maxX = xScale.getPixelForValue(maxVal);
+  
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(minX, yPos);
+            ctx.lineTo(maxX, yPos);
+            ctx.stroke();
+  
+            // Draw caps
+            const capSize = 5;
+            ctx.beginPath();
+            ctx.moveTo(minX, yPos - capSize);
+            ctx.lineTo(minX, yPos + capSize);
+            ctx.stroke();
+  
+            ctx.beginPath();
+            ctx.moveTo(maxX, yPos - capSize);
+            ctx.lineTo(maxX, yPos + capSize);
+            ctx.stroke();
+  
+          } else {
+            // Vertical error bars
+            const xPos = barElement.x; // Bar center in x-direction
+            const meanY = yScale.getPixelForValue(meanVal);
+            const minY = yScale.getPixelForValue(minVal);
+            const maxY = yScale.getPixelForValue(maxVal);
+  
+            ctx.beginPath();
+            ctx.moveTo(xPos, minY);
+            ctx.lineTo(xPos, maxY);
+            ctx.stroke();
+  
+            const capSize = 5;
+            // Min cap
+            ctx.beginPath();
+            ctx.moveTo(xPos - capSize, minY);
+            ctx.lineTo(xPos + capSize, minY);
+            ctx.stroke();
+  
+            // Max cap
+            ctx.beginPath();
+            ctx.moveTo(xPos - capSize, maxY);
+            ctx.lineTo(xPos + capSize, maxY);
+            ctx.stroke();
+          }
+        });
+      });
+  
+      ctx.restore();
+    }
+  };
+  
 // Event listeners for min/max value inputs & requested funding
-// Event listeners for min/max value inputs & requested funding
-minValueInput.addEventListener('input', applyFilters);
-maxValueInput.addEventListener('input', applyFilters);
+greaterThanValueInput.addEventListener('input', applyFilters);
+lessThanValueInput.addEventListener('input', applyFilters);
 requestedFundingInput.addEventListener('input', () => {
     const requestedApplicants = requestedFundingInput.value.split(",").map(Number);
     const requestedApplicantsLen = requestedApplicants.length
@@ -104,8 +308,17 @@ function sortChartDescending(chart) {
 
     combinedData.sort((a, b) => b.value - a.value);
 
+    // Update the chart data
     chart.data.labels = combinedData.map(item => item.label);
     chart.data.datasets[0].data = combinedData.map(item => item.value);
+
+    // Update pageInfo to match the sorted order
+    const sortedPageInfo = {};
+    combinedData.forEach(item => {
+        const page = item.label;
+        sortedPageInfo[page] = window.pageInfo[page]; // Retain min/max/mean for each page
+    });
+    window.pageInfo = sortedPageInfo;
 
     chart.update();
 }
@@ -114,8 +327,8 @@ function sortChartDescending(chart) {
 function applyFilters() {
     if (!myChart || originalData.length === 0) return;
 
-    const minValue = parseFloat(minValueInput.value) || 0;
-    const maxValue = parseFloat(maxValueInput.value) || 3;
+    const minValue = parseFloat(greaterThanValueInput.value) || 0;
+    const maxValue = parseFloat(lessThanValueInput.value) || 3;
 
     // Filter data while keeping all fields accessible
     const meanOnlyData = originalData.filter(obj => obj.category === 'Mean');
@@ -161,10 +374,15 @@ function loadCSVData() {
     });
 }
 
+// We'll create a global pageInfo object to store min/max for each page:
+window.pageInfo = {}; // Will store { page: {min:..., max:..., mean:...}, ... }
+
 // Process CSV data and render charts
 function processChartData(data) {
     const pageMeans = {};
     const pageNames = {};
+    const pageMins = {};
+    const pageMaxs = {};
 
     originalData = []; // Reset the original data
 
@@ -172,9 +390,13 @@ function processChartData(data) {
         const page = row.page;
         const name = row.name;
         const mean = parseFloat(row.mean);
+        const min = parseFloat(row.min);
+        const max = parseFloat(row.max)
 
         pageNames[page] = name;
         pageMeans[page] = mean;
+        pageMins[page] = min;
+        pageMaxs[page] = max;
 
         // Store the full row in originalData
         originalData.push({
@@ -182,8 +404,19 @@ function processChartData(data) {
             name: name,
             category: row.category,
             mean: mean,
+            min: min,
+            max: max,
             pageNum: parseInt(row.page_num)
         });
+    });
+
+    // Populate global pageInfo for error bars
+    Object.keys(pageMeans).forEach(page => {
+        window.pageInfo[page] = {
+            mean: pageMeans[page],
+            min: pageMins[page],
+            max: pageMaxs[page] 
+        };
     });
 
     // Prepare labels, values, and tooltips for the main chart
@@ -203,12 +436,19 @@ function processChartData(data) {
 
 // Render the main chart
 function renderChart(labels, data, tooltips) {
+    const canvas = document.getElementById("myChart");
+    const maxHeight = 1100; 
+    canvas.style.maxHeight = `${maxHeight}px`;
+
     const ctx = document.getElementById("myChart").getContext("2d");
 
     // Destroy the previous chart instance if it exists
     if (myChart) {
         myChart.destroy();
     }
+
+    // Get user-defined xMax or fallback to default
+    const xMax = xMaxInput && xMaxInput.value ? parseFloat(xMaxInput.value) : defaultXMax;
 
     myChart = new Chart(ctx, {
         type: "bar",
@@ -238,7 +478,7 @@ function renderChart(labels, data, tooltips) {
                     callbacks: {
                         label: function (context) {
                             const index = context.dataIndex;
-                            return `Mean: ${context.raw} (${tooltips[index]})`;
+                            return `Mean: ${context.raw}`;
                         },
                     },
                 },
@@ -246,6 +486,8 @@ function renderChart(labels, data, tooltips) {
             scales: {
                 x: {
                     beginAtZero: true,
+                    min: 0,
+                    max: xMax, // Use dynamic xMax
                     ticks: { font: { size: 20 } }
                 },
                 y: {
@@ -254,6 +496,7 @@ function renderChart(labels, data, tooltips) {
                 }
             },
         },
+        plugins: [horizontalErrorBarPlugin]
     });
 
     // Sort the chart in descending order after rendering
@@ -262,9 +505,14 @@ function renderChart(labels, data, tooltips) {
 
 // Render the comparison chart
 function renderComparisonChart(data) {
+    // Set max-height dynamically
+    const canvas = document.getElementById("comparisonChart");
+    const maxHeight = 400; // Example height in pixels
+    canvas.style.maxHeight = `${maxHeight}px`;
+    
     const chartOneNum = parseInt(compareOne.value);
     const chartTwoNum = parseInt(compareTwo.value);
-    const chartThreeNum = parseInt(compareThree?.value); // Optional third input (add this to your HTML if needed)
+    const chartThreeNum = parseInt(compareThree?.value);
 
     // Filter data for the selected pages
     const chartOneObjects = data.filter(obj => obj.pageNum === chartOneNum);
@@ -290,12 +538,12 @@ function renderComparisonChart(data) {
 
     const ctx = document.getElementById("comparisonChart").getContext("2d");
 
-    // Destroy the previous chart instance if it exists
+    // Destroy old chart if exists
     if (comparisonChart) {
         comparisonChart.destroy();
     }
 
-    // Prepare datasets dynamically
+    // Prepare datasets with originalData included
     const datasets = [
         {
             label: `Data for Page ${chartOneNum}`,
@@ -303,6 +551,8 @@ function renderComparisonChart(data) {
             backgroundColor: "rgba(75, 192, 192, 0.6)",
             borderColor: "rgba(75, 192, 192, 1)",
             borderWidth: 1,
+            // Attach the full objects that include mean, min, max
+            originalData: chartOneObjects
         },
         {
             label: `Data for Page ${chartTwoNum}`,
@@ -310,10 +560,11 @@ function renderComparisonChart(data) {
             backgroundColor: "rgba(192, 75, 192, 0.6)",
             borderColor: "rgba(192, 75, 192, 1)",
             borderWidth: 1,
+            // Attach the full objects that include mean, min, max
+            originalData: chartTwoObjects
         },
     ];
 
-    // Add third dataset if it exists
     if (chartThreeData) {
         datasets.push({
             label: `Data for Page ${chartThreeNum}`,
@@ -321,10 +572,12 @@ function renderComparisonChart(data) {
             backgroundColor: "rgba(75, 75, 192, 0.6)",
             borderColor: "rgba(75, 75, 192, 1)",
             borderWidth: 1,
+            // Attach the full objects that include mean, min, max
+            originalData: chartThreeObjects
         });
     }
 
-    // Render the chart
+    // Render the chart with the unifiedErrorBarPlugin
     comparisonChart = new Chart(ctx, {
         type: "bar",
         data: {
@@ -351,8 +604,11 @@ function renderComparisonChart(data) {
                 },
             },
         },
+        plugins: [unifiedErrorBarPlugin]
     });
 }
+
+
 // Load the initial CSV data
 loadCSVData();
 

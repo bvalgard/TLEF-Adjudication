@@ -1,3 +1,8 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 32px;
@@ -5,14 +10,21 @@ body {
 }
 
 .grid {
+  /* height: 100%; */
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: min-content 1fr min-content;
+  grid-template-columns: minmax(200, 325px) repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  /* grid-template-rows: minmax(200px, 325px) minmax(1500px, 2000) min-content; */
+  grid-template-rows: min-content auto 1fr;
   grid-template-areas:
     "meta-data meta-data meta-data meta-data meta-data meta-data meta-data"
     "filters avg-score avg-score avg-score avg-names-list avg-names-list avg-names-list"
     "comp-pages comp-chart comp-chart comp-chart comp-chart comp-chart comp-chart";
 }
+
+/* .grid > div {
+  overflow: visible; 
+} */
 
 .meta-data {
   grid-area: meta-data;
@@ -22,8 +34,11 @@ body {
   margin-bottom: 2rem;
 }
 
-.b1 {
-  grid-area: avg-score;
+.avg-score,
+.avg-names-list {
+  max-width: 100%; /* Prevent overflow horizontally */
+  max-height: 100%; /* Prevent overflow vertically */
+  overflow: hidden; /* Hide content that overflows */
 }
 
 .avg-score {
@@ -42,17 +57,14 @@ body {
   grid-area: comp-chart;
 }
 
-.top-left-container {
-  display: grid;
-  gap: 1rem;
-}
+
+
 
 #filters {
   display: flex;
-  flex-direction: column; /* Stack items vertically */
-  align-items: flex-start; /* Align children to the left */
-  flex: 0 0 auto; /* Take only necessary space */
-  /* margin-bottom: 2rem; */
+  flex-direction: column; 
+  align-items: flex-start; 
+  flex: 0 0 auto; 
   gap: 2rem;
 }
 
@@ -72,14 +84,26 @@ body {
   font-size: 1.3rem;
 }
 
-#chart-container {
-  width: 800px;
-  height: 1000px;
+/* #chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
   margin: 0 auto;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
+  font-size: 1.5rem;
+} */
+
+#chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%; /* Take full height of the grid area */
+  display: flex;
   flex-direction: column;
   font-size: 1.5rem;
+  /* justify-content: center; */
+  /* align-items: center; */
 }
 
 #chart-container > * {
@@ -87,13 +111,14 @@ body {
 }
 
 #myChart {
-  flex: 0 0 80%;
+  max-width: 100%; /* Prevent the chart from overflowing horizontally */
+  max-height: 1200px; /* Prevent the chart from growing too tall */
 }
 
 #nameList {
   width: 100%;
+  max-height: 90%;
   font-size: 1.4rem;
-  max-height: 1000px;
   overflow-y: scroll;
 }
 
@@ -191,6 +216,7 @@ input[type="number"]::-webkit-outer-spin-button {
   cursor: pointer;
 }
 
+/* todo: fix this fixed with */
 #comparison-chart-container {
   margin-top: 2rem;
   width: 1600px;
@@ -211,15 +237,22 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .styledContainer.chartStyledContainer {
-  height: 1100px;
-  margin: 32px;
+  position: relative;
+  max-width: 100%;
+  height: 1200px;
+  /* height: 200%; */
   padding: 0 62px;
-  margin-top: 0px;
-  /* background-color: black; */
+  overflow: hidden;
+  padding-bottom: 1rem;
+}
+
+.styledContainer.chartStyledContainer h2 {
+  padding-top: 16px;
 }
 
 .styledContainer.chartStyledContainer.comparisonContainer {
-  height: 600px;
+  height: 100%;
+  margin-bottom: 20px;
 }
 
 .styledContainer.max-height {
