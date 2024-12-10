@@ -600,7 +600,9 @@ function renderComparisonChart(data) {
                 },
                 y: {
                     beginAtZero: true,
-                    ticks: { font: { size: 20 } },
+                    min: 0,
+                    max: 3, // Use dynamic xMax
+                    ticks: { font: { size: 20 } }
                 },
             },
         },
